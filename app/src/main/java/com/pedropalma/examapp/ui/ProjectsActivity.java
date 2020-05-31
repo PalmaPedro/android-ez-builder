@@ -73,7 +73,7 @@ public class ProjectsActivity extends AppCompatActivity {
             }
         });
 
-        /*
+
         //handle FloatingAction button click (logout)
         FloatingActionButton logout = findViewById(R.id.btnLogout);
         logout.setOnClickListener(new View.OnClickListener() {
@@ -86,7 +86,7 @@ public class ProjectsActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        }); */
+        });
     }
 
     private void showProjects() {
@@ -105,6 +105,7 @@ public class ProjectsActivity extends AppCompatActivity {
                         for (DocumentSnapshot doc : task.getResult()) {
                             Project project = new Project(doc.getString("id"),
                                     //get image
+                                    doc.getString("imageUrl"),
                                     doc.getString("title"),
                                     doc.getString("start date"),
                                     doc.getString("end date"));

@@ -22,6 +22,7 @@ public class ViewHolder extends RecyclerView.ViewHolder {
                 mClickListener.onItemClick(v, getAdapterPosition());
             }
         });
+        /*
         //item long click listener
         itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -29,7 +30,7 @@ public class ViewHolder extends RecyclerView.ViewHolder {
                 mClickListener.onItemClick(v, getAdapterPosition());
                 return true;
             }
-        });
+        });*/
 
         //initialize views with project_item.xml
         mTitleTv = itemView.findViewById(R.id.tView_title);
@@ -40,7 +41,7 @@ public class ViewHolder extends RecyclerView.ViewHolder {
 
     //interface for click listener
     public interface ClickListener {
-        void onItemLongClick(View view, int position);
+        //void onItemLongClick(View view, int position);
         void onItemClick(View view, int position);
     }
 

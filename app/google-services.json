@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "131518894107-ejbap6uka814k720968u2e3rdplk4nnp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pedropalma.examapp",
+            "certificate_hash": "3033bdb70b45e0a0e056f4f79fcbd45441dbec58"
+          }
+        },
+        {
           "client_id": "131518894107-3rqkt1s0lh5mlk5la8197gm8rn1hivrq.apps.googleusercontent.com",
           "client_type": 3
         }

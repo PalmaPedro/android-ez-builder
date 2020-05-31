@@ -39,6 +39,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
         ViewHolder viewHolder = new ViewHolder(itemView);
         //handle item clicks here
         viewHolder.setOnClickListener(new ViewHolder.ClickListener() {
+            /*
             @Override
             public void onItemLongClick(View view, int position) {
                 //this will be called when user clicks item
@@ -46,14 +47,15 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 String title = projects.get(position).getTitle();
                 String startDate = projects.get(position).getStartDate();
                 String endDate = projects.get(position).getEndDate();
-                Toast.makeText(projectsActivity, title + "\n" + startDate, Toast.LENGTH_SHORT).show();
-            }
+                Toast.makeText(projectsActivity, title + "\n" + startDate + endDate, Toast.LENGTH_SHORT).show();
+            }*/
 
             @Override
             public void onItemClick(View view, final int position) {
                 //this will be called when user  clicks item
                 //get data
                 String id = projects.get(position).getId();
+                String imageUrl = projects.get(position).getImageURL();
                 String title = projects.get(position).getTitle();
                 String startDate = projects.get(position).getStartDate();
                 String endDate = projects.get(position).getEndDate();
@@ -61,6 +63,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 Intent intent = new Intent(projectsActivity, ProjectDetailsActivity.class);
                 //put data in the intent
                 intent.putExtra("pId", id);
+                intent.putExtra("pImageUrl", imageUrl);
                 intent.putExtra("pTitle", title);
                 intent.putExtra("pStartDate", startDate);
                 intent.putExtra("pEndDate", endDate);

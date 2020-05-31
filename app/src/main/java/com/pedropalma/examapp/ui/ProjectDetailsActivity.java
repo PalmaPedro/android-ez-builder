@@ -1,13 +1,20 @@
 package com.pedropalma.examapp.ui;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
@@ -20,8 +27,13 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.pedropalma.examapp.R;
+import com.pedropalma.examapp.helpers.ImageSelectHelper;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -31,7 +43,7 @@ import java.util.UUID;
 public class ProjectDetailsActivity extends AppCompatActivity {
 
     //views
-    private ImageView mImage;
+    public ImageView mImage;
     private EditText mTitle, mStartDate, mEndDate;
     private DatePickerDialog picker;
     private TextView mLocation;
@@ -40,10 +52,17 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     // progress dialog
     ProgressDialog pd;
 
-    //firestore instance
+    //Firestore db instance
     private FirebaseFirestore db;
 
-    private String pId, pTitle, pStartDate, pEndDate, pLocation;
+    private Uri mImageUri;
+
+    //Firestore storage variables
+    private StorageReference mStorageRef;
+    private DatabaseReference mDatabaseRef;
+
+
+    private String pId, pImage, pTitle, pStartDate, pEndDate, pLocation;
 
 
     @Override
@@ -52,27 +71,124 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_project_details);
 
         //initialize views
-        // imageView project logo
-        //EditTextView project title
-        mTitle = findViewById(R.id.etTitle);
-        //set start project date
-        pickStartDate();
-        //set end project date
-        pickEndDate();
-        //GoogleMapView
-        //TextView location fetched from Google Map marker
-        //Button save/update
-        mSaveBtn = findViewById(R.id.btn_save);
-        //Button delete
-        mDeleteBtn = findViewById(R.id.btn_delete);
+        buildViews();
 
         //evaluate if its a 'add new project' or 'update existing one'
+        saveOrUpdateCheck();
+
+        //progress dialog
+        pd = new ProgressDialog(this);
+
+        //firestore db instance
+        db = FirebaseFirestore.getInstance();
+
+        //firestore storage instance
+        mStorageRef = FirebaseStorage.getInstance().getReference("uploads");
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference("uploads");
+
+        //handle button click to save/update project into firestore database
+        btnSaveOrUpdate();
+
+        //handle button click to delete project from firestore database
+        btnDelete();
+
+    }
+
+    private void buildViews() {
+        // PROJECT LOGO IMAGE - ImageView
+        mImage = findViewById(R.id.ivProjectLogo);
+        // handle click image event
+        mImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImage(ProjectDetailsActivity.this);
+            }
+        });
+        // PROJECT TITLE - EditTextView
+        mTitle = findViewById(R.id.etTitle);
+        // PROJECT START DATE
+        pickStartDate();
+        // PROJECT ESTIMATED END DATE
+        pickEndDate();
+        // GOOGLE MAP VIEW
+
+        // PROJECT LOCATION - TextView
+        // BUTTON SAVE / UPDATE
+        mSaveBtn = findViewById(R.id.btn_save);
+        // BUTTON DELETE
+        mDeleteBtn = findViewById(R.id.btn_delete);
+    }
+
+    private void selectImage(ProjectDetailsActivity projectDetailsActivity) {
+
+        final CharSequence[] options = {"Take Photo", "Choose from Gallery", "Cancel"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(projectDetailsActivity);
+        builder.setTitle("Choose your profile picture");
+
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+
+                if (options[item].equals("Take Photo")) {
+                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(takePicture, 0);
+
+                } else if (options[item].equals("Choose from Gallery")) {
+                    Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(pickPhoto, 1);//one can be replaced with any action code
+
+                } else if (options[item].equals("Cancel")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_CANCELED) {
+            switch (requestCode) {
+                case 0:
+                    if (resultCode == RESULT_OK && data != null) {
+                        Bitmap selectedImage = (Bitmap) data.getExtras().get("data");
+                        mImage.setImageBitmap(selectedImage);
+                    }
+                    break;
+                case 1:
+                    if (resultCode == RESULT_OK && data != null) {
+                        Uri selectedImage = data.getData();
+                        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                        if (selectedImage != null) {
+                            Cursor cursor = getContentResolver().query(selectedImage,
+                                    filePathColumn, null, null, null);
+                            if (cursor != null) {
+                                cursor.moveToFirst();
+
+                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                                String picturePath = cursor.getString(columnIndex);
+                                mImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+                                cursor.close();
+                            }
+                        }
+
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void saveOrUpdateCheck() {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             mSaveBtn.setText("Update");
             //get data
             pId = bundle.getString("pId");
-            // logo image here
+            pImage = bundle.getString("pImage");
             pTitle = bundle.getString("pTitle");
             pStartDate = bundle.getString("pStartDate");
             pEndDate = bundle.getString("pEndDate");
@@ -86,14 +202,21 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         } else {
             mSaveBtn.setText("Save");
         }
+    }
 
-        //progress dialog
-        pd = new ProgressDialog(this);
+    private void btnDelete() {
+        mDeleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //deleting
+                String id = pId;
+                //function call to delete note
+                deleteProject(id);
+            }
+        });
+    }
 
-        //firestore instance
-        db = FirebaseFirestore.getInstance();
-
-        //handle button click to save/update project into firestore database
+    private void btnSaveOrUpdate() {
         mSaveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,44 +225,32 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                     //updating
                     //input data
                     String id = pId;
+                    String image = mImage.getDrawable().toString().trim();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
                     //String location = mLocation.getText().toString().trim();
                     //function call to update data
-                    updateProject(id, title, startDate, endDate);
+                    updateProject(id, image, title, startDate, endDate);
+                    //updateImg() update image to Firestore storage
 
                 } else {
                     //adding new
                     //input data
+                    String image = mImage.getDrawable().toString().trim();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
                     //String location = mLocation.getText().toString().trim();
                     // function call to add note
-                    addProject(title, startDate, endDate);
+                    addProject(image, title, startDate, endDate);
+                    //addImg()  add image to Firestore datastore
                 }
             }
         });
-
-
-        //handle button click to delete project from firestore database
-        mDeleteBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //deleting
-                String id = pId;
-                //String title = mTitle.getText().toString().trim();
-                //String startDate = mStartDate.getText().toString().trim();
-                //String endDate = mStartDate.getText().toString().trim();
-                //function call to delete note
-                deleteProject(id);
-            }
-        });
-
     }
 
-    private void addProject(String title, String startDate, String endDate) {
+    private void addProject(String image, String title, String startDate, String endDate) {
         //set title of progress bar
         pd.setTitle("Adding project to Firestore");
         //show progress bar when user clicks save button
@@ -149,12 +260,13 @@ public class ProjectDetailsActivity extends AppCompatActivity {
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", id); // generated id for note
+        map.put("image", image);
         map.put("title", title);
         map.put("start date", startDate);
         map.put("end date", endDate);
 
 
-        //add note
+        //add project
         db.collection("projects").document(id).set(map)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -174,13 +286,13 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateProject(String id, String title, String startDate, String endDate) {
+    private void updateProject(String id, String image, String title, String startDate, String endDate) {
         //set title of progress bar
         pd.setTitle("Updating note...");
         //show progress bar when user clicks save button
         pd.show();
         db.collection("projects").document(id)
-                .update("title", title, "start date", startDate, "end date",endDate )
+                .update("image", image, "title", title, "start date", startDate, "end date", endDate)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -227,7 +339,6 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     // method to set project start date
     public void pickStartDate() {
@@ -278,7 +389,6 @@ public class ProjectDetailsActivity extends AppCompatActivity {
             }
         });
     }
-
 
     // redirect to projects list if back button is pressed
     @Override
