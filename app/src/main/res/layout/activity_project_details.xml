@@ -1,0 +1,94 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:fillViewport="true"
+    tools:context=".ui.ProjectDetailsActivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity ="center"
+        android:weightSum =" 3"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/ivProjectLogo"
+            android:layout_width="411dp"
+            android:layout_height="129dp"
+            app:srcCompat="@drawable/ic_launcher_background" />
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Project Title"
+            android:inputType="textPersonName"
+            android:scrollbarAlwaysDrawHorizontalTrack="true"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbarSize="8dp"
+            android:scrollbarStyle="insideOverlay" />
+
+        <EditText
+            android:id="@+id/etStartDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Start Date"
+            android:inputType="textPersonName"
+            tools:ignore="TextFields" />
+
+        <EditText
+            android:id="@+id/etEndDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Estimated End Date"
+            android:inputType="textPersonName" />
+
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mpMapLocation"
+            android:layout_width="394dp"
+            android:layout_height="243dp" />
+
+        <TextView
+            android:id="@+id/etLocation"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Location"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/btn_delete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete" />
+
+    </LinearLayout>
+</ScrollView>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

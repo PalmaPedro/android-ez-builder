@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "131518894107",
+    "firebase_url": "https://exam-app-bcab0.firebaseio.com",
+    "project_id": "exam-app-bcab0",
+    "storage_bucket": "exam-app-bcab0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131518894107:android:6e826e3a2dc338248ba8be",
+        "android_client_info": {
+          "package_name": "com.pedropalma.examapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "131518894107-3rqkt1s0lh5mlk5la8197gm8rn1hivrq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfQXNXXZsvTJRufbmj1JoDnoTTYOfulqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "131518894107-3rqkt1s0lh5mlk5la8197gm8rn1hivrq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
