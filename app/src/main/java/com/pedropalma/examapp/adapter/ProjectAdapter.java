@@ -55,7 +55,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 //this will be called when user  clicks item
                 //get data
                 String id = projects.get(position).getId();
-                String imageUrl = projects.get(position).getImageURL();
+                //String imageUrl = projects.get(position).getImageURL();
                 String title = projects.get(position).getTitle();
                 String startDate = projects.get(position).getStartDate();
                 String endDate = projects.get(position).getEndDate();
@@ -63,7 +63,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 Intent intent = new Intent(projectsActivity, ProjectDetailsActivity.class);
                 //put data in the intent
                 intent.putExtra("pId", id);
-                intent.putExtra("pImageUrl", imageUrl);
+                //intent.putExtra("pImageUrl", imageUrl);
                 intent.putExtra("pTitle", title);
                 intent.putExtra("pStartDate", startDate);
                 intent.putExtra("pEndDate", endDate);

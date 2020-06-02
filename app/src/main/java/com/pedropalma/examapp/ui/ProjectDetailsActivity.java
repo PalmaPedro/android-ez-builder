@@ -1,12 +1,14 @@
 package com.pedropalma.examapp.ui;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,27 +16,37 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
 import com.pedropalma.examapp.R;
-import com.pedropalma.examapp.helpers.ImageSelectHelper;
+import com.squareup.picasso.Picasso;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,17 +65,18 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     ProgressDialog pd;
 
     //Firestore db instance
-    private FirebaseFirestore db;
-
-    private Uri mImageUri;
+    FirebaseFirestore mDatabaseRef;
 
     //Firestore storage variables
     private StorageReference mStorageRef;
-    private DatabaseReference mDatabaseRef;
 
+    private Uri selectedImage;
+
+    private StorageTask mUploadTask;
+
+    private ProgressBar mProgressBar;
 
     private String pId, pImage, pTitle, pStartDate, pEndDate, pLocation;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,18 +86,17 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         //initialize views
         buildViews();
 
-        //evaluate if its a 'add new project' or 'update existing one'
+        //evaluate if its a new project or an existing one
         saveOrUpdateCheck();
 
         //progress dialog
         pd = new ProgressDialog(this);
 
         //firestore db instance
-        db = FirebaseFirestore.getInstance();
+        mDatabaseRef = FirebaseFirestore.getInstance();
 
         //firestore storage instance
         mStorageRef = FirebaseStorage.getInstance().getReference("uploads");
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference("uploads");
 
         //handle button click to save/update project into firestore database
         btnSaveOrUpdate();
@@ -149,33 +161,33 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_CANCELED) {
             switch (requestCode) {
                 case 0:
                     if (resultCode == RESULT_OK && data != null) {
-                        Bitmap selectedImage = (Bitmap) data.getExtras().get("data");
-                        mImage.setImageBitmap(selectedImage);
+                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                        //load image to ImageView
+                        mImage.setImageBitmap(bitmap);
+                        // convert to uri to be uploaded to storage
+                        String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), bitmap,"title",null);
+                        if (path!=null) {
+                            selectedImage = Uri.parse(path);
+                        }
                     }
                     break;
                 case 1:
                     if (resultCode == RESULT_OK && data != null) {
-                        Uri selectedImage = data.getData();
-                        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-                        if (selectedImage != null) {
-                            Cursor cursor = getContentResolver().query(selectedImage,
-                                    filePathColumn, null, null, null);
-                            if (cursor != null) {
-                                cursor.moveToFirst();
-
-                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                                String picturePath = cursor.getString(columnIndex);
-                                mImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-                                cursor.close();
-                            }
+                        selectedImage = data.getData();
+                        // load image to ImageView
+                        try{
+                            InputStream is = getContentResolver().openInputStream(selectedImage);
+                             Bitmap bitmap = BitmapFactory.decodeStream(is);
+                            mImage.setImageBitmap(bitmap);
+                        } catch (Exception e) {
                         }
-
+                       // Picasso.get().load(selectedImage).into(mImage);
                     }
                     break;
             }
@@ -194,7 +206,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
             pEndDate = bundle.getString("pEndDate");
             //pLocation = bundle.getString("pLocation");
             //set data
-            // set logo image here
+            mImage.setImageURI(selectedImage);
             mTitle.setText(pTitle);
             mStartDate.setText(pStartDate);
             mEndDate.setText(pEndDate);
@@ -223,32 +235,66 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                 Bundle bundle = getIntent().getExtras();
                 if (bundle != null) {
                     //updating
-                    //input data
+                    //upload data to Fireabase db
                     String id = pId;
-                    String image = mImage.getDrawable().toString().trim();
+
+                    String image = selectedImage.toString().trim();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
                     //String location = mLocation.getText().toString().trim();
                     //function call to update data
                     updateProject(id, image, title, startDate, endDate);
-                    //updateImg() update image to Firestore storage
+                    // upload image to Fireabase storage
+                    uploadFile();
 
                 } else {
                     //adding new
                     //input data
-                    String image = mImage.getDrawable().toString().trim();
+                    String image = selectedImage.toString().trim();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
                     //String location = mLocation.getText().toString().trim();
                     // function call to add note
                     addProject(image, title, startDate, endDate);
-                    //addImg()  add image to Firestore datastore
+                    // upload image to Fireabase storage
+                    uploadFile();
                 }
             }
         });
     }
+
+    // method to add extension to image files
+    private String getFileExtension(Uri uri) {
+        ContentResolver cR = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cR.getType(uri));
+    }
+
+    // method to upload image to Firebase storage
+    private void uploadFile() {
+        if (selectedImage != null) {
+            StorageReference fileReference = mStorageRef.child(System.currentTimeMillis()
+                    + "." + getFileExtension(selectedImage));
+            mUploadTask = fileReference.putFile(selectedImage)
+                    .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                            System.out.println("upload completed");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            System.out.println("error " + e.getMessage());
+                        }
+                    });
+        } else {
+            Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void downloadFile(){}
 
     private void addProject(String image, String title, String startDate, String endDate) {
         //set title of progress bar
@@ -265,9 +311,8 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         map.put("start date", startDate);
         map.put("end date", endDate);
 
-
         //add project
-        db.collection("projects").document(id).set(map)
+        mDatabaseRef.collection("projects").document(id).set(map)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -275,6 +320,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                         pd.dismiss();
                         //get and show error message
                         Toast.makeText(ProjectDetailsActivity.this, "Uploaded...", Toast.LENGTH_SHORT).show();
+                        onBackPressed();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -291,7 +337,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd.setTitle("Updating note...");
         //show progress bar when user clicks save button
         pd.show();
-        db.collection("projects").document(id)
+        mDatabaseRef.collection("projects").document(id)
                 .update("image", image, "title", title, "start date", startDate, "end date", endDate)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -299,7 +345,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                         //called when updated successfully
                         pd.dismiss();
                         Toast.makeText(ProjectDetailsActivity.this, "Updated...", Toast.LENGTH_SHORT).show();
-
+                        onBackPressed();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -318,7 +364,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd.setTitle("Deleting note...");
         //show progress bar when user clicks save button
         pd.show();
-        db.collection("projects").document(id)
+        mDatabaseRef.collection("projects").document(id)
                 .delete()
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -326,7 +372,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                         //called when updated successfully
                         pd.dismiss();
                         Toast.makeText(ProjectDetailsActivity.this, "Deleted...", Toast.LENGTH_SHORT).show();
-
+                        onBackPressed();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -393,7 +439,6 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     // redirect to projects list if back button is pressed
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         super.onBackPressed();
         Intent intent = new Intent(ProjectDetailsActivity.this, ProjectsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

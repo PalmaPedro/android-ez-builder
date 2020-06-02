@@ -22,16 +22,6 @@ public class ViewHolder extends RecyclerView.ViewHolder {
                 mClickListener.onItemClick(v, getAdapterPosition());
             }
         });
-        /*
-        //item long click listener
-        itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                mClickListener.onItemClick(v, getAdapterPosition());
-                return true;
-            }
-        });*/
-
         //initialize views with project_item.xml
         mTitleTv = itemView.findViewById(R.id.tView_title);
         mStartDateTv = itemView.findViewById(R.id.tView_startDate);

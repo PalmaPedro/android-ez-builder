@@ -22,7 +22,6 @@ public class Project {
         this.endDate = endDate;
     }
 
-
     public String getImageURL() {
         return imageURL;
     }

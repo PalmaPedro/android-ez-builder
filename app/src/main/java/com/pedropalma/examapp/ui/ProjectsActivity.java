@@ -37,7 +37,7 @@ public class ProjectsActivity extends AppCompatActivity {
     //layout manager for recycler view
     RecyclerView.LayoutManager layoutManager;
     //firestore instance;
-    FirebaseFirestore db;
+    FirebaseFirestore mDatabaseRef;
     ProjectAdapter adapter;
     ProgressDialog pd;
 
@@ -47,7 +47,7 @@ public class ProjectsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_projects);
 
         //initialize firestore
-        db = FirebaseFirestore.getInstance();
+        mDatabaseRef = FirebaseFirestore.getInstance();
 
         //initialize views
         recyclerView = findViewById(R.id.recycler_view);
@@ -73,7 +73,6 @@ public class ProjectsActivity extends AppCompatActivity {
             }
         });
 
-
         //handle FloatingAction button click (logout)
         FloatingActionButton logout = findViewById(R.id.btnLogout);
         logout.setOnClickListener(new View.OnClickListener() {
@@ -94,7 +93,7 @@ public class ProjectsActivity extends AppCompatActivity {
         pd.setTitle("Loading Data...");
         //show progress dialog
         pd.show();
-        db.collection("projects")  // firestore collection name
+        mDatabaseRef.collection("projects")  // firestore collection name
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
