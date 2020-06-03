@@ -1,4 +1,4 @@
 package com.pedropalma.examapp.storage;
 
-public class FirebaseRepo {
+public class FirebasedbManager {
 }
