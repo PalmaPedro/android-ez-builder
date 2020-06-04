@@ -1,6 +1,5 @@
 package com.pedropalma.examapp.auth;
 
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,7 +18,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.pedropalma.examapp.ui.ProjectsActivity;
 import com.pedropalma.examapp.R;
 
-public class MainActivity extends AppCompatActivity {
+public class SignupActivity extends AppCompatActivity {
+
     EditText email, password;
     Button btnSignUp;
     TextView tvSignIn;
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_signup);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
         email = findViewById(R.id.editText);
@@ -58,25 +58,25 @@ public class MainActivity extends AppCompatActivity {
                     password.requestFocus();
                 } else if (mail.isEmpty() && pwd.isEmpty()) {
                     // error message if both fields are left empty
-                    Toast.makeText(MainActivity.this, "Fields are empty",
+                    Toast.makeText(SignupActivity.this, "Fields are empty",
                             Toast.LENGTH_SHORT).show();
                 } else if (!(mail.isEmpty() && pwd.isEmpty())) {
                     // create user and save it to firebase
-                    mFirebaseAuth.createUserWithEmailAndPassword(mail, pwd).addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+                    mFirebaseAuth.createUserWithEmailAndPassword(mail, pwd).addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (!task.isSuccessful()) {
-                                Toast.makeText(MainActivity.this, "Signup unsuccessful, please try again!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SignupActivity.this, "Signup unsuccessful, please try again!", Toast.LENGTH_SHORT).show();
                             } else {
                                 // signup successful, forwards to home activity which will and creates a new user in firebase
                                 // be the main view of the app
-                                Intent intent = new Intent(MainActivity.this, ProjectsActivity.class);
+                                Intent intent = new Intent(SignupActivity.this, ProjectsActivity.class);
                                 startActivity(intent);
                             }
                         }
                     });
                 } else {
-                    Toast.makeText(MainActivity.this, "Error occurred", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignupActivity.this, "Error occurred", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         tvSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick (View v){
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
         });

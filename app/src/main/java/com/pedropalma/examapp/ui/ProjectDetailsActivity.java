@@ -11,12 +11,10 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.View;
@@ -29,30 +27,31 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 import com.pedropalma.examapp.R;
 import com.squareup.picasso.Picasso;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
-public class ProjectDetailsActivity extends AppCompatActivity {
+public class ProjectDetailsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     //views
     public ImageView mImage;
@@ -65,18 +64,20 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     ProgressDialog pd;
 
     //Firestore db instance
-    FirebaseFirestore mDatabaseRef;
+    FirebaseFirestore db;
 
     //Firestore storage variables
     private StorageReference mStorageRef;
 
-    private Uri selectedImage;
+    private Uri imageUri;
 
-    private StorageTask mUploadTask;
+    public StorageTask mUploadTask;
 
     private ProgressBar mProgressBar;
 
-    private String pId, pImage, pTitle, pStartDate, pEndDate, pLocation;
+    public String pId, pImage, pTitle, pStartDate, pEndDate, pLocation;
+
+    private MapView mMapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +94,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd = new ProgressDialog(this);
 
         //firestore db instance
-        mDatabaseRef = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         //firestore storage instance
         mStorageRef = FirebaseStorage.getInstance().getReference("uploads");
@@ -123,7 +124,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         // PROJECT ESTIMATED END DATE
         pickEndDate();
         // GOOGLE MAP VIEW
-
+        //initGoogleMapView(){}
         // PROJECT LOCATION - TextView
         // BUTTON SAVE / UPDATE
         mSaveBtn = findViewById(R.id.btn_save);
@@ -134,60 +135,53 @@ public class ProjectDetailsActivity extends AppCompatActivity {
     private void selectImage(ProjectDetailsActivity projectDetailsActivity) {
 
         final CharSequence[] options = {"Take Photo", "Choose from Gallery", "Cancel"};
-
         AlertDialog.Builder builder = new AlertDialog.Builder(projectDetailsActivity);
         builder.setTitle("Choose your profile picture");
-
         builder.setItems(options, new DialogInterface.OnClickListener() {
-
             @Override
             public void onClick(DialogInterface dialog, int item) {
-
                 if (options[item].equals("Take Photo")) {
                     Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(takePicture, 0);
-
                 } else if (options[item].equals("Choose from Gallery")) {
                     Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     startActivityForResult(pickPhoto, 1);//one can be replaced with any action code
-
                 } else if (options[item].equals("Cancel")) {
                     dialog.dismiss();
                 }
             }
         });
         builder.show();
-
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
         if (resultCode != RESULT_CANCELED) {
             switch (requestCode) {
-                case 0:
-                    if (resultCode == RESULT_OK && data != null) {
-                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                case 0:  // take photo
+                    if (resultCode == RESULT_OK && intent != null) {
+                        Bitmap bitmap = (Bitmap) intent.getExtras().get("data");
                         //load image to ImageView
                         mImage.setImageBitmap(bitmap);
                         // convert to uri to be uploaded to storage
                         String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), bitmap,"title",null);
                         if (path!=null) {
-                            selectedImage = Uri.parse(path);
+                            imageUri = Uri.parse(path);
                         }
                     }
                     break;
-                case 1:
-                    if (resultCode == RESULT_OK && data != null) {
-                        selectedImage = data.getData();
+                case 1: // choose from gallery
+                    if (resultCode == RESULT_OK && intent != null) {
+                        imageUri = intent.getData();
                         // load image to ImageView
-                        try{
-                            InputStream is = getContentResolver().openInputStream(selectedImage);
-                             Bitmap bitmap = BitmapFactory.decodeStream(is);
+                        try {
+                            InputStream is = getContentResolver().openInputStream(imageUri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(is);
                             mImage.setImageBitmap(bitmap);
                         } catch (Exception e) {
                         }
-                       // Picasso.get().load(selectedImage).into(mImage);
+                        //Picasso.get().load(imageUri).into(mImage);
                     }
                     break;
             }
@@ -206,7 +200,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
             pEndDate = bundle.getString("pEndDate");
             //pLocation = bundle.getString("pLocation");
             //set data
-            mImage.setImageURI(selectedImage);
+            mImage.setImageURI(imageUri);
             mTitle.setText(pTitle);
             mStartDate.setText(pStartDate);
             mEndDate.setText(pEndDate);
@@ -237,8 +231,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                     //updating
                     //upload data to Fireabase db
                     String id = pId;
-
-                    String image = selectedImage.toString().trim();
+                    String image = mImage.getDrawable().toString();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
@@ -251,7 +244,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
                 } else {
                     //adding new
                     //input data
-                    String image = selectedImage.toString().trim();
+                    String image = mImage.getDrawable().toString();
                     String title = mTitle.getText().toString().trim();
                     String startDate = mStartDate.getText().toString().trim();
                     String endDate = mEndDate.getText().toString().trim();
@@ -274,10 +267,10 @@ public class ProjectDetailsActivity extends AppCompatActivity {
 
     // method to upload image to Firebase storage
     private void uploadFile() {
-        if (selectedImage != null) {
+        if (imageUri != null) {
             StorageReference fileReference = mStorageRef.child(System.currentTimeMillis()
-                    + "." + getFileExtension(selectedImage));
-            mUploadTask = fileReference.putFile(selectedImage)
+                    + "." + getFileExtension(imageUri));
+            mUploadTask = fileReference.putFile(imageUri)
                     .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
@@ -294,7 +287,8 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void downloadFile(){}
+    private void downloadFile() {
+    }
 
     private void addProject(String image, String title, String startDate, String endDate) {
         //set title of progress bar
@@ -303,16 +297,14 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd.show();
         //random id for each note to be stored in Firestore
         String id = UUID.randomUUID().toString();
-
         Map<String, Object> map = new HashMap<>();
         map.put("id", id); // generated id for note
         map.put("image", image);
         map.put("title", title);
         map.put("start date", startDate);
         map.put("end date", endDate);
-
         //add project
-        mDatabaseRef.collection("projects").document(id).set(map)
+        db.collection("projects").document(id).set(map)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -337,7 +329,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd.setTitle("Updating note...");
         //show progress bar when user clicks save button
         pd.show();
-        mDatabaseRef.collection("projects").document(id)
+        db.collection("projects").document(id)
                 .update("image", image, "title", title, "start date", startDate, "end date", endDate)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -364,7 +356,7 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         pd.setTitle("Deleting note...");
         //show progress bar when user clicks save button
         pd.show();
-        mDatabaseRef.collection("projects").document(id)
+        db.collection("projects").document(id)
                 .delete()
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -445,4 +437,14 @@ public class ProjectDetailsActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+    }
 }
+
+
+
+
+

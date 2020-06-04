@@ -3,7 +3,15 @@
     package="com.pedropalma.examapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <permission android:name="com.yourdomain.projname.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyDZGLXh5HN4knawTyXVwNET1Lw8XF55zek"/>
 
     <application
         android:allowBackup="true"
@@ -12,14 +20,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.StartActivity"></activity>
+        <activity android:name=".auth.SignupActivity" />
         <activity android:name=".ui.ProjectDetailsActivity" />
         <activity android:name=".ui.ProjectsActivity" />
         <activity android:name=".auth.LoginActivity" />
-        <activity android:name=".auth.MainActivity">
+        <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

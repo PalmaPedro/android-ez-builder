@@ -14,6 +14,7 @@ public class Project {
         // empty constructor is needed
     }
 
+
     public Project(String id, String imageUrl, String title, String startDate, String endDate) {
         this.id = id;
         this.imageURL = imageUrl;

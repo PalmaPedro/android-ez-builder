@@ -22,7 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.pedropalma.examapp.R;
 import com.pedropalma.examapp.adapter.ProjectAdapter;
-import com.pedropalma.examapp.auth.MainActivity;
+import com.pedropalma.examapp.auth.SignupActivity;
 import com.pedropalma.examapp.model.Project;
 
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public class ProjectsActivity extends AppCompatActivity {
                 // logs out and forwards user to Main Activity
                 FirebaseAuth.getInstance().signOut();
                 // when user signs out gets re-directed to main activity
-                Intent intent = new Intent(ProjectsActivity.this, MainActivity.class);
+                Intent intent = new Intent(ProjectsActivity.this, SignupActivity.class);
                 startActivity(intent);
                 finish();
             }
@@ -108,7 +108,7 @@ public class ProjectsActivity extends AppCompatActivity {
                                     doc.getString("title"),
                                     doc.getString("start date"),
                                     doc.getString("end date"));
-                                    //doc.getString("location"));
+                            //doc.getString("location"));
                             projects.add(project);
                         }
                         //adapter
