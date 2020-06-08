@@ -7,20 +7,20 @@ public class Project {
     private String title = "";
     private String startDate = "";
     private String endDate = "";
-    //private String location = "";
+    private String location = "";
 
 
     public Project() {
         // empty constructor is needed
     }
 
-
-    public Project(String id, String imageUrl, String title, String startDate, String endDate) {
+    public Project(String id, String imageURL, String title, String startDate, String endDate, String location) {
         this.id = id;
-        this.imageURL = imageUrl;
+        this.imageURL = imageURL;
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.location = location;
     }
 
     public String getImageURL() {
@@ -43,10 +43,9 @@ public class Project {
         return endDate;
     }
 
-    /*
     public String getLocation() {
         return location;
-    }*/
+    }
 
     public String getId() {
         return id;

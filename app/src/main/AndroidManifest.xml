@@ -2,16 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.pedropalma.examapp">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <permission android:name="com.yourdomain.projname.permission.MAPS_RECEIVE"
-        android:protectionLevel="signature" />
+    <uses-permission-sdk-23  android:name="android.permission.INTERNET" />
+    <uses-permission-sdk-23  android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission-sdk-23  android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-    <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyDZGLXh5HN4knawTyXVwNET1Lw8XF55zek"/>
+
+    <permission
+        android:name="com.pedropalma.examapp.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
 
     <application
         android:allowBackup="true"
@@ -20,10 +20,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".auth.SignupActivity" />
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="@string/google_api_key"/>
+        <activity android:name=".ui.SignupActivity" />
         <activity android:name=".ui.ProjectDetailsActivity" />
+        <activity android:name=".ui.MapsActivity" />
         <activity android:name=".ui.ProjectsActivity" />
-        <activity android:name=".auth.LoginActivity" />
+        <activity android:name=".ui.LoginActivity" />
         <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

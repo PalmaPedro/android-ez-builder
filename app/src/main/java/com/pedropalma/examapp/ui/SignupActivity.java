@@ -1,4 +1,4 @@
-package com.pedropalma.examapp.auth;
+package com.pedropalma.examapp.ui;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +15,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.pedropalma.examapp.ui.ProjectsActivity;
 import com.pedropalma.examapp.R;
 
 public class SignupActivity extends AppCompatActivity {

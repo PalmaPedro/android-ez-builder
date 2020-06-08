@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">EZBuilder</string>
+    <string name="google_maps_key" translatable="false">AIzaSyDTkHIMfcAlEtUPA9Whi8BAEH8cU9NJcAg</string>
 </resources>

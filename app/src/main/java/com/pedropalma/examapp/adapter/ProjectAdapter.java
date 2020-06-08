@@ -5,11 +5,8 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.pedropalma.examapp.ui.ProjectDetailsActivity;
 import com.pedropalma.examapp.ui.ProjectsActivity;
 import com.pedropalma.examapp.R;
@@ -48,6 +45,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 String title = projects.get(position).getTitle();
                 String startDate = projects.get(position).getStartDate();
                 String endDate = projects.get(position).getEndDate();
+                String location = projects.get(position).getLocation();
                 //intent to start activity
                 Intent intent = new Intent(projectsActivity, ProjectDetailsActivity.class);
                 //put data in the intent
@@ -56,6 +54,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ViewHolder> {
                 intent.putExtra("pTitle", title);
                 intent.putExtra("pStartDate", startDate);
                 intent.putExtra("pEndDate", endDate);
+                intent.putExtra("plocation", location);
                 //start activity
                 projectsActivity.startActivity(intent);
             }

@@ -9,7 +9,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -22,7 +21,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.pedropalma.examapp.R;
 import com.pedropalma.examapp.adapter.ProjectAdapter;
-import com.pedropalma.examapp.auth.SignupActivity;
 import com.pedropalma.examapp.model.Project;
 
 import java.util.ArrayList;
@@ -107,8 +105,8 @@ public class ProjectsActivity extends AppCompatActivity {
                                     doc.getString("imageUrl"),
                                     doc.getString("title"),
                                     doc.getString("start date"),
-                                    doc.getString("end date"));
-                            //doc.getString("location"));
+                                    doc.getString("end date"),
+                                    doc.getString("location"));
                             projects.add(project);
                         }
                         //adapter

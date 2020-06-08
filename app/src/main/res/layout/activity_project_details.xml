@@ -1,24 +1,24 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:fillViewport="true"
+    android:background="#f7f6f5"
     tools:context=".ui.ProjectDetailsActivity">
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical"
-        android:gravity ="center"
-        android:weightSum =" 3"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:weightSum=" 3">
 
         <ImageView
             android:id="@+id/ivProjectLogo"
-            android:layout_width="411dp"
-            android:layout_height="129dp"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
             app:srcCompat="@drawable/ic_launcher_background" />
 
         <EditText
@@ -26,6 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
+            android:layout_marginTop="10dp"
             android:hint="Project Title"
             android:inputType="textPersonName"
             android:scrollbarAlwaysDrawHorizontalTrack="true"
@@ -39,29 +40,33 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="Start Date"
-            android:inputType="textPersonName"
-            tools:ignore="TextFields" />
+            android:inputType="textPersonName"/>
+
 
         <EditText
             android:id="@+id/etEndDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
+            android:layout_marginBottom="10dp"
             android:hint="Estimated End Date"
             android:inputType="textPersonName" />
 
 
-        <com.google.android.gms.maps.MapView
-            android:id="@+id/mpMapLocation"
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="243dp" />
+            android:layout_height="180dp" />
 
-        <TextView
+        <EditText
             android:id="@+id/etLocation"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="Location"
-            android:textSize="18sp" />
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:layout_marginTop="10dp"
+            android:hint="Location"
+            android:inputType="textPersonName" />
 
         <Button
             android:id="@+id/btn_save"
@@ -76,7 +81,7 @@
             android:text="Delete" />
 
     </LinearLayout>
-</ScrollView>
+</RelativeLayout>
 
 
 

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import com.pedropalma.examapp.R;
-import com.pedropalma.examapp.auth.SignupActivity;
 
 public class MainActivity extends AppCompatActivity {
 
